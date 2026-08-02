@@ -5,6 +5,11 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "mixins": [],
+  "mixins": [
+    "ItemBucketMixin",
+    "ItemFoodMixin",
+    "MobMixin",
+    "PlayerMixin"
+  ],
   "client": []
 }

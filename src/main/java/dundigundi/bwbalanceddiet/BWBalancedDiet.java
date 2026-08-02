@@ -8,14 +8,14 @@ import turniplabs.halplibe.event.defs.CommonEvents;
 import turniplabs.halplibe.util.dependency.Key;
 
 public class BWBalancedDiet implements ModInitializer {
-	public static final String MOD_ID = HalpLibe.registerMod("examplemod", true);
+	public static final String MOD_ID = HalpLibe.registerMod("bwbalanceddiet", true);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
 	@Override
 	public void onInitialize() {
 		CommonEvents.BEFORE_GAME_START.listen(Key.of(MOD_ID), this::beforeGameStart);
 		CommonEvents.AFTER_GAME_START.listen(Key.of(MOD_ID), this::afterGameStart);
-		LOGGER.info("ExampleMod initialized.");
+		LOGGER.info("Better With Balanced Diet initialized.");
 	}
 
 	public void beforeGameStart() {
