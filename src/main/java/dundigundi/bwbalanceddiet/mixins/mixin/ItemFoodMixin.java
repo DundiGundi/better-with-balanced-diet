@@ -9,7 +9,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import static dundigundi.bwbalanceddiet.BWBalancedDiet.LOGGER;
 import static net.minecraft.core.item.ItemBucket.getBucketState;
 
 @Mixin(value = ItemFood.class, remap = false)
@@ -36,7 +35,7 @@ public abstract class ItemFoodMixin implements IItemFood {
 	@Override
 	public int better_with_balanced_diet$getDefaultHealAmount(ItemStack itemStack) {
 		if ((Object) this instanceof ItemBucket) {
-			LOGGER.info(String.valueOf(getBucketState(ItemBucket.getState(itemStack)).healAmount()));
+			//LOGGER.info(String.valueOf(getBucketState(ItemBucket.getState(itemStack)).healAmount()));
 			return getBucketState(ItemBucket.getState(itemStack)).healAmount();
 		}
 

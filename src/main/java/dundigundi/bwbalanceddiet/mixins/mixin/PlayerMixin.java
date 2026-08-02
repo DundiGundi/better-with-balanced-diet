@@ -2,6 +2,8 @@ package dundigundi.bwbalanceddiet.mixins.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.mojang.nbt.tags.CompoundTag;
+import com.mojang.nbt.tags.ListTag;
 import dundigundi.bwbalanceddiet.ItemFoodData;
 import dundigundi.bwbalanceddiet.mixins.interfaces.IItemFood;
 import dundigundi.bwbalanceddiet.mixins.interfaces.IPlayer;
@@ -10,14 +12,14 @@ import net.minecraft.core.item.ItemFood;
 import net.minecraft.core.item.ItemStack;
 import net.minecraft.core.player.inventory.container.ContainerInventory;
 import org.jetbrains.annotations.NotNull;
-import org.spongepowered.asm.mixin.*;
-
+import org.spongepowered.asm.mixin.Final;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
-
-import static dundigundi.bwbalanceddiet.BWBalancedDiet.LOGGER;
 
 //TODO: instantheal?
 @Mixin(value = Player.class, remap = false)
@@ -41,38 +43,32 @@ public abstract class PlayerMixin implements IPlayer {
 		if (recentConsumedFoods.size() > consumedFoodHistory) {
 			ItemFoodData first = recentConsumedFoods.getFirst();
 			recentConsumedFoods.removeFirst();
-			if (better_with_balanced_diet$countFoodType(first) == 0) consumedFoodsMultiplier.remove(first);
+			if (better_with_balanced_diet$countFoodType(first) == 0) first.removeFromMap(consumedFoodsMultiplier);
 		}
-		//LOGGER.info(String.valueOf(recentConsumedFoods));
-		consumedFoodsMultiplier.putIfAbsent(itemFoodData, better_with_balanced_diet$calculateHealMultiplier(itemFoodData));
+		itemFoodData.putInMapOrEdit(consumedFoodsMultiplier, better_with_balanced_diet$calculateHealMultiplier(itemFoodData));
+		better_with_balanced_diet$refreshHealMultipliers();
+
+		//LOGGER.info(String.valueOf(itemFoodData.getFromMap(consumedFoodsMultiplier)));
+		//LOGGER.info(String.valueOf(better_with_balanced_diet$countFoodType(itemFoodData)));
 	}
 
 	@Override
 	public float better_with_balanced_diet$calculateHealMultiplier(ItemFoodData itemFoodData) {
 		int count = better_with_balanced_diet$countFoodType(itemFoodData);
-		float healMultiplier = 1;
+		float healAmountMultiplier = 1;
 
 		if (count >= (consumedFoodHistory * 0.9)) {
-			healMultiplier = 0.25f;
-			//iItemFood.better_with_cheese$setSaturationMultiplier(0.25f);
-			//healAmount = (int) (healAmount * 0.25);
+			healAmountMultiplier = 0.25f;
 		}
 		else if (count >= (consumedFoodHistory * 0.75)) {
-			healMultiplier = 0.5f;
-			//iItemFood.better_with_cheese$setSaturationMultiplier(0.5f);
-			//healAmount = (int) (healAmount * 0.5);
+			healAmountMultiplier = 0.5f;
 		}
 		else if (count >= (consumedFoodHistory * 0.5)) {
-			healMultiplier = 0.75f;
-			//iItemFood.better_with_cheese$setSaturationMultiplier(0.75f);
-			//healAmount = (int) (healAmount * 0.75);
+			healAmountMultiplier = 0.75f;
 		}
-		//if (count < (consumedFoodHistory * 0.5)) {
-			//iItemFood.better_with_cheese$setSaturationMultiplier(1);
-		//}
 
-		//LOGGER.info("healAmount: {} \n##########", healAmount);
-		return healMultiplier;
+		//LOGGER.info("healAmountMultiplier and count: {}, {}\n##########", healAmountMultiplier, count);
+		return healAmountMultiplier;
 	}
 
 	@Override
@@ -82,8 +78,8 @@ public abstract class PlayerMixin implements IPlayer {
 			for (int i = 0; i < recentConsumedFoods.size(); i++) {
 				if (recentConsumedFoods.get(i).compare(itemFoodData)) count++;
 			}
-			LOGGER.info("count: {}", count);
-			LOGGER.info("bucketstate: {}", itemFoodData.bucketState);
+			//LOGGER.info("count: {}", count);
+			//LOGGER.info("bucketstate: {}", itemFoodData.bucketState);
 			return count;
 		}else {
 			return 0;
@@ -94,9 +90,19 @@ public abstract class PlayerMixin implements IPlayer {
 	private ItemStack addMultiplier(Operation<ItemStack> original) {
 		ItemStack held = this.inventory.getCurrentItem();
 		if (held != null && held.getItem() instanceof ItemFood) {
-			((IItemFood)held.getItem()).better_with_balanced_diet$setHealAmountMultiplier(better_with_balanced_diet$calculateHealMultiplier(new ItemFoodData(held)));
+			((IItemFood)held.getItem()).better_with_balanced_diet$setHealAmountMultiplier(better_with_balanced_diet$getHealMultiplier(new ItemFoodData(held)));
 		}
 		return held;
+	}
+
+	@Override
+	public float better_with_balanced_diet$getHealMultiplier(ItemFoodData itemFoodData) {
+		float f = itemFoodData.getFromMap(consumedFoodsMultiplier);
+		if (f < 0) {
+			return better_with_balanced_diet$calculateHealMultiplier(itemFoodData);
+		} else {
+			return f;
+		}
 	}
 
 	@Override
@@ -107,37 +113,67 @@ public abstract class PlayerMixin implements IPlayer {
 		return false;
 	}
 
-	/*@WrapMethod(method = "addAdditionalSaveData")
+	@Override
+	public void better_with_balanced_diet$refreshHealMultipliers() {
+		for(Map.Entry<ItemFoodData, Float> set : consumedFoodsMultiplier.entrySet()) {
+			set.setValue(better_with_balanced_diet$calculateHealMultiplier(set.getKey()));
+		}
+	}
+
+	@WrapMethod(method = "addAdditionalSaveData")
 	private void saveRecentConsumedFoods(CompoundTag tag, Operation<Void> original) {
-		tag.putList("RecentConsumedFoods", better_with_cheese$save(new ListTag()));
+		tag.putList("RecentConsumedFoods", better_with_balanced_diet$saveFoods(new ListTag()));
+		tag.putList("ConsumedFoodsMultiplier", better_with_balanced_diet$saveHealMultiplier(new ListTag()));
+		//LOGGER.info("save:");
+		//LOGGER.info("Recent consumed foods: {}", ItemFoodData.printList(recentConsumedFoods));
+		//LOGGER.info("Multipliers: {}", ItemFoodData.printMap(consumedFoodsMultiplier));
 		original.call(tag);
 	}
 
 	@WrapMethod(method = "readAdditionalSaveData")
 	private void loadRecentConsumedFoods(CompoundTag tag, Operation<Void> original) {
-		better_with_cheese$load(tag.getList("RecentConsumedFoods"));
+		better_with_balanced_diet$loadFoods(tag.getList("RecentConsumedFoods"));
+		better_with_balanced_diet$loadHealMultiplier(tag.getList("ConsumedFoodsMultiplier"));
+		//LOGGER.info("load:");
+		//LOGGER.info("Recent consumed foods: {}", ItemFoodData.printList(recentConsumedFoods));
+		//LOGGER.info("Multipliers: {}", ItemFoodData.printMap(consumedFoodsMultiplier));
 		original.call(tag);
 	}
 
-	//TODO: save map too
 	@NotNull
 	@Override
-	public ListTag better_with_cheese$save(@NotNull ListTag parentTag) {
-		for (ItemFood itemFood : recentConsumedFoods) {
-			CompoundTag itemTag = new CompoundTag();
-			itemTag.putInt("ItemFood", itemFood.id);
-			parentTag.addTag(itemTag);
+	public ListTag better_with_balanced_diet$saveFoods(@NotNull ListTag parentTag) {
+		for (ItemFoodData itemFoodData : recentConsumedFoods) {
+			parentTag.addTag(itemFoodData.generateCompoundTag());
 		}
-
+		return parentTag;
+	}
+	@NotNull
+	@Override
+	public ListTag better_with_balanced_diet$saveHealMultiplier(@NotNull ListTag parentTag) {
+		for (Map.Entry<ItemFoodData, Float> set : consumedFoodsMultiplier.entrySet()) {
+			CompoundTag tag = new CompoundTag();
+			tag.putInt("ItemID", set.getKey().itemID);
+			tag.putString("BucketState", set.getKey().bucketState);
+			tag.putFloat("HealAmountMultiplier", set.getValue());
+			parentTag.addTag(tag);
+		}
 		return parentTag;
 	}
 
 	@Override
-	public void better_with_cheese$load(@NotNull ListTag parentTag) {
+	public void better_with_balanced_diet$loadFoods(@NotNull ListTag parentTag) {
 		for(int i = 0; i < parentTag.tagCount(); ++i) {
-			CompoundTag itemTag = (CompoundTag)parentTag.tagAt(i);
-			recentConsumedFoods.add((ItemFood) ItemFood.getItem(itemTag.getInteger("ItemFood")));
+			CompoundTag tag = (CompoundTag)parentTag.tagAt(i);
+			recentConsumedFoods.add(new ItemFoodData(tag));
 		}
-
-	}*/
+	}
+	@Override
+	public void better_with_balanced_diet$loadHealMultiplier(@NotNull ListTag parentTag) {
+		for(int i = 0; i < parentTag.tagCount(); ++i) {
+			CompoundTag tag = (CompoundTag)parentTag.tagAt(i);
+			consumedFoodsMultiplier.put(new ItemFoodData(tag.getInteger("ItemID"), tag.getString("BucketState")), tag.getFloat("HealAmountMultiplier"));
+			//LOGGER.info(String.valueOf(tag.getInteger("ItemID")));
+		}
+	}
 }
