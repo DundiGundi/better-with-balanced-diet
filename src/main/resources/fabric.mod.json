@@ -1,26 +1,26 @@
 {
 	"schemaVersion": 1,
-	"id": "examplemod",
+	"id": "bwbalanceddiet",
 	"version": "${version}",
-	"name": "Example Mod",
-	"description": "This mod aims to help new BTA modders.",
+	"name": "Better With Balanced Diet",
+	"description": "This mod aims to add a simple diet mechanic to BTA",
 	"authors": [
-		"Turnip Labs"
+		"DundiGundi"
 	],
 	"contact": {
 		"homepage": "",
-		"sources": ""
+		"sources": "https://github.com/DundiGundi/better-with-balanced-diet"
 	},
 	"icon": "icon.png",
 	"license": "CC0-1.0",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-			"turniplabs.examplemod.ExampleMod"
+			"dundigundi.bwbalanceddiet.BWBalancedDiet"
 		]
 	},
 	"mixins": [
-		"examplemod.mixins.json"
+		"bwbalanceddiet.mixins.json"
 	],
 	"depends": {
 		"fabricloader": ">=${fabricloader}",

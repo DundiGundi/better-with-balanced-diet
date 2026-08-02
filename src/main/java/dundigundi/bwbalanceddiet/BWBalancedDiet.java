@@ -1,4 +1,4 @@
-package turniplabs.examplemod;
+package dundigundi.bwbalanceddiet;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;
@@ -7,7 +7,7 @@ import turniplabs.halplibe.HalpLibe;
 import turniplabs.halplibe.event.defs.CommonEvents;
 import turniplabs.halplibe.util.dependency.Key;
 
-public class ExampleMod implements ModInitializer {
+public class BWBalancedDiet implements ModInitializer {
 	public static final String MOD_ID = HalpLibe.registerMod("examplemod", true);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
