@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.Map;
 
 //TODO: instantheal?
+//TODO: there is desync between player and server in multiplayer -> the gui restarts every login but the healingamount seems to be correct
 @Mixin(value = Player.class, remap = false)
 public abstract class PlayerMixin implements IPlayer {
 	@Shadow
