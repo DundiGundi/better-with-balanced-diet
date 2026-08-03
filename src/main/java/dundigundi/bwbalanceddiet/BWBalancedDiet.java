@@ -1,6 +1,7 @@
 package dundigundi.bwbalanceddiet;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import turniplabs.halplibe.HalpLibe;
@@ -10,6 +11,12 @@ import turniplabs.halplibe.util.dependency.Key;
 public class BWBalancedDiet implements ModInitializer {
 	public static final String MOD_ID = HalpLibe.registerMod("bwbalanceddiet", true);
 	public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
+
+	public static void writeInDev(String formated){
+		if(FabricLoader.getInstance().isDevelopmentEnvironment()){
+			LOGGER.info("{}", formated);
+		}
+	}
 
 	@Override
 	public void onInitialize() {

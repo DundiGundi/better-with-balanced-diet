@@ -21,8 +21,11 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
+import static dundigundi.bwbalanceddiet.BWBalancedDiet.*;
+
 //TODO: instantheal?
 //TODO: there is desync between player and server in multiplayer -> the gui restarts every login but the healingamount seems to be correct
+//TODO: writeInDevet beleirni az osszes helyre
 @Mixin(value = Player.class, remap = false)
 public abstract class PlayerMixin implements IPlayer {
 	@Shadow
@@ -125,9 +128,9 @@ public abstract class PlayerMixin implements IPlayer {
 	private void saveRecentConsumedFoods(CompoundTag tag, Operation<Void> original) {
 		tag.putList("RecentConsumedFoods", better_with_balanced_diet$saveFoods(new ListTag()));
 		tag.putList("ConsumedFoodsMultiplier", better_with_balanced_diet$saveHealMultiplier(new ListTag()));
-		//LOGGER.info("save:");
-		//LOGGER.info("Recent consumed foods: {}", ItemFoodData.printList(recentConsumedFoods));
-		//LOGGER.info("Multipliers: {}", ItemFoodData.printMap(consumedFoodsMultiplier));
+		writeInDev("save:");
+		writeInDev(String.format("Recent consumed foods: %s", ItemFoodData.printList(recentConsumedFoods)));
+		writeInDev(String.format("Multipliers: %s", ItemFoodData.printMap(consumedFoodsMultiplier)));
 		original.call(tag);
 	}
 
@@ -135,9 +138,9 @@ public abstract class PlayerMixin implements IPlayer {
 	private void loadRecentConsumedFoods(CompoundTag tag, Operation<Void> original) {
 		better_with_balanced_diet$loadFoods(tag.getList("RecentConsumedFoods"));
 		better_with_balanced_diet$loadHealMultiplier(tag.getList("ConsumedFoodsMultiplier"));
-		//LOGGER.info("load:");
-		//LOGGER.info("Recent consumed foods: {}", ItemFoodData.printList(recentConsumedFoods));
-		//LOGGER.info("Multipliers: {}", ItemFoodData.printMap(consumedFoodsMultiplier));
+		writeInDev("load:");
+		writeInDev(String.format("Recent consumed foods: %s", ItemFoodData.printList(recentConsumedFoods)));
+		writeInDev(String.format("Multipliers: %s", ItemFoodData.printMap(consumedFoodsMultiplier)));
 		original.call(tag);
 	}
 
